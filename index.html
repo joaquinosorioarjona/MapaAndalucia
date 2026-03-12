@@ -249,7 +249,7 @@ function colorLinea(nombre) {
     switch(nombre) {
         case "F.C. Madrid-Córdoba": return "#8B0000"; 
 		case "F.C. Córdoba-Sevilla": return "#fe0000"; 
-        case "F.C. Sevilla-Cádiz": return "#B22222"; 
+        case "F.C. Sevilla-Cádiz": return "#d95030"; 
         case "Sevilla Empalme Córdoba-Cádiz": return "#FF69B4";
         case "F.C. Córdoba-Málaga": return "#4B0082"; 
         case "F.C. Bobadilla-Granada": return "#9370DB"; 
@@ -340,24 +340,61 @@ map.on('overlayremove', function(e){
 });
 
 // ========================
-// Escala y buscador
+// Escala
 // ========================
 var escala = L.control.scale({position: 'bottomleft', imperial: false, maxWidth: 200});
 map.addControl(escala);
 
+// ========================
+// Geocodificador (localizador) encima de control de capas
+// ========================
 var results = L.layerGroup().addTo(map);
 var searchControl = L.esri.Geocoding.geosearch({
-    position:'topright',
-    placeholder:'escribe la localización',
-    expanded:true
+    position: 'topright',
+    placeholder: 'escribe la localización',
+    expanded: true
 }).addTo(map);
 
 searchControl.on('results', function(data){
     results.clearLayers();
-    for (var i = data.results.length -1; i >= 0; i--) {
+    for (var i = data.results.length - 1; i >= 0; i--) {
         results.addLayer(L.marker(data.results[i].latlng));
     }
 });
+
+// ========================
+// Leyenda combinada siempre visible
+// ========================
+var legend = L.control({position: 'bottomright'});
+legend.onAdd = function(map){
+    var div = L.DomUtil.create('div', 'info legend');
+    var html = '<strong>Población cercana (habitantes)</strong><br>';
+    var grades = [0, 5000, 10000, 30000, 60000];
+    var categories = ['< 5000','5001-10000','10001-30000','30001-60000','>60000'];
+    for (var i = 0; i < grades.length; i++) {
+        var grade = grades[i];
+        html += '<i class="circlepadding" style="width: '+Math.max(8,(7-2.2*getRadius(grade)))+'px;"></i> ' +
+                '<i style="background: #8B0000; width: '+getRadius(grade)*2+'px; height:'+getRadius(grade)*2+'px; border-radius: 50%; display:inline-block;"></i> ' +
+                categories[i] + '<br>';
+    }
+
+    html += '<br><strong>Líneas de ferrocarril</strong><br>';
+    var nombresLineas = [
+        "F.C. Madrid-Córdoba",
+		"F.C. Córdoba-Sevilla",
+        "F.C. Sevilla-Cádiz",
+        "Sevilla Empalme Córdoba-Cádiz",
+        "F.C. Córdoba-Málaga",
+        "F.C. Bobadilla-Granada"
+    ];
+    nombresLineas.forEach(function(nombre){
+        html += '<i style="background:' + colorLinea(nombre) + '; width:18px; height:5px; display:inline-block; margin-right:5px;"></i> ' + nombre + '<br>';
+    });
+
+    div.innerHTML = html;
+    return div;
+};
+legend.addTo(map);
 	</script>
 	<div style=text-align:right>
 		<p style=color:black><strong>Autor: Joaquín Osorio Arjona (Doctor en Geografía, Profesor en la UNED). <a href=”url”>https://www.uned.es/universidad/docentes/geografia-historia/joaquin-osorio-arjona.html</a></strong></p>	
