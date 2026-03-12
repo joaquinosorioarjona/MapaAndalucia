@@ -187,116 +187,175 @@
 	<div id="map" class="sidebar-map"></div>
 
 	<script>
-	var map = L.map('map');
-		map.setView([37.35,-4.65], 9);
-		
-	var osm = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-		maxZoom: 18,
-		attribution: 'Map data &copy; OpenStreetMap contributors'
-	})
-	
-	var maptile = L.mapboxGL({
-        attribution: "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e",
-        style: 'https://api.maptiler.com/maps/6516ccba-253a-4f2f-8920-b2828eb7d858/style.json?key=Y9KJbkXF4ObUWmvEpf6s'
-      }).addTo(map);
-	  
-	var sidebar = L.control.sidebar('sidebar').addTo(map);
-	
-	var linea = new L.GeoJSON(linea, {
-		color: "#800080"
-	}).addTo(map);
-		
-	function getRadius(habitantes) {
-			return habitantes >= 60000  ? 40 :
-				habitantes >= 30000  ? 20 :
-				habitantes >= 10000 ? 10: 
-				habitantes >= 5000 ? 5:  				
-								3;
-		};
-		
-	function estilo(feature) {
-			return{
-				radius:getRadius(feature.properties.habitantes),
-			};
-		};
-	
-	function popup(feature, layer) {
-			layer.bindPopup("<ul><h4>" +feature.properties.nombre+" </h4><li>" 
-			+feature.properties.municipio+", "+feature.properties.provincia+"</li><li>Da servicio a aproximadamente "+feature.properties.habitantes+" habitantes.</li></ul>");
-		};
+var map = L.map('map');
+map.setView([37.35,-4.65], 9);
 
-	var MarkerOptions = {
-		color: "#8B0000",
-		weight: 1,
-		fillColor: "#8B0000",
-		fillOpacity: 0.8
-	};
-		
-	var estaciones = L.geoJSON(estaciones, {
-		pointToLayer: function (feature, latlng){
-			return L.circleMarker(latlng, MarkerOptions);
-		},
-		style:estilo,
-		onEachFeature: popup
-	});
-	map.addLayer(estaciones);
-	
-	var searchControl = L.esri.Geocoding.geosearch({
-		position:'topright',
-		placeholder:'escribe la localización',
-		expanded:true
-	}).addTo(map);
-	
-	var baseLayers = {
-		"Maptile": maptile,
-		"OpenStreetsMap": osm
-	};
-	
-	var overlays = {
-		"Estaciones de tren": estaciones,
-		"Línea de ferrocarril": linea
-	};
-	
-	var control = new L.control.layers(baseLayers, overlays,{collapsed:false});
-	control.addTo(map);
-	
-	var legend = L.control({position: 'bottomright'});
-			legend.onAdd = function (map) {
-		var div = L.DomUtil.create('div', 'info legend');
-		var grades = [0 ,5000, 10000, 30000, 60000];
-		var labels = ['<strong>Población cercana (número de habitantes)</strong>'];
-		var categories = ['< 5000','5001-10000','10001-30000','30001-600000','>600000'];
-		for (var i = 0; i < grades.length; i++) {
-			var grade = grades[i];//*0.5;
-				labels.push(
-				'<i class="circlepadding" style="width: '+Math.max(8,(7-2.2*getRadius(grade)))+'px;"></i> <i style="background: #8B0000; width: '+getRadius(grade)*2+'px; height:'+getRadius(grade)*2+'px; border-radius: 50%; margin-top: '+Math.max(0,(9-getRadius(grade)))+'px;"></i><i class="circlepadding" style="width: '+Math.max(2,(20-2*getRadius(grade)))+'px;"></i> ' + categories[i]);
-			}
-		div.innerHTML = labels.join('<br>');
-		return div;
-		};
-	legend.addTo(map);
-	
-	map.on('overlayadd', function(eventLayer){
-		if (eventLayer.name === 'Estaciones de tren'){
-			map.addControl(legend);
-		} 
-	});
-	map.on('overlayremove', function(eventLayer){
-		if (eventLayer.name === 'Estaciones de tren'){
-			map.removeControl(legend);
-		} 
-	});
-	
-	var escala = L.control.scale({ position: 'bottomleft', imperial: false, maxWidth: 200});
-		map.addControl(escala);
-		
-	var results = L.layerGroup().addTo(map);
-	searchControl.on('results', function(data){
-		results.clearLayers();
-	for (var i = data.results.length -1; i >= 0; i--) {
-		results.addLayer(L.marker(data.results[i].latlng));
-	}
-	});
+// Capas base
+var osm = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18,
+    attribution: 'Map data &copy; OpenStreetMap contributors'
+});
+
+var maptile = L.mapboxGL({
+    attribution: "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e",
+    style: 'https://api.maptiler.com/maps/6516ccba-253a-4f2f-8920-b2828eb7d858/style.json?key=Y9KJbkXF4ObUWmvEpf6s'
+}).addTo(map);
+
+var sidebar = L.control.sidebar('sidebar').addTo(map);
+
+// ========================
+// Estaciones
+// ========================
+function getRadius(habitantes) {
+    return habitantes >= 60000 ? 40 :
+           habitantes >= 30000 ? 20 :
+           habitantes >= 10000 ? 10 : 
+           habitantes >= 5000 ? 5 : 3;
+}
+
+function estilo(feature) {
+    return {
+        radius: getRadius(feature.properties.habitantes)
+    };
+}
+
+function popup(feature, layer) {
+    layer.bindPopup(
+        "<ul><h4>" + feature.properties.nombre + "</h4>" +
+        "<li>" + feature.properties.municipio + ", " + feature.properties.provincia + "</li>" +
+        "<li>Da servicio a aproximadamente " + feature.properties.habitantes + " habitantes.</li></ul>"
+    );
+}
+
+var MarkerOptions = {
+    color: "#8B0000",
+    weight: 1,
+    fillColor: "#8B0000",
+    fillOpacity: 0.8
+};
+
+var estacionesLayer = L.geoJSON(estaciones, {
+    pointToLayer: function(feature, latlng){
+        return L.circleMarker(latlng, MarkerOptions);
+    },
+    style: estilo,
+    onEachFeature: popup
+}).addTo(map);
+
+// ========================
+// Líneas de ferrocarril
+// ========================
+function colorLinea(nombre) {
+    switch(nombre) {
+        case "F.C. Madrid-Córdoba": return "#8B0000"; // rojo oscuro
+        case "F.C. Sevilla-Cádiz": return "#B22222"; // rojo sangre
+        case "Sevilla Empalme Córdoba-Cádiz": return "#FF69B4"; // rosa
+        case "F.C. Córdoba-Málaga": return "#4B0082"; // morado oscuro
+        case "F.C. Bobadilla-Granada": return "#9370DB"; // morado claro-medio
+        default: return "#000000";
+    }
+}
+
+function estiloLinea(feature) {
+    return {
+        color: colorLinea(feature.properties.nombre),
+        weight: 4
+    };
+}
+
+function popupLinea(feature, layer) {
+    layer.bindPopup("<strong>Línea:</strong> " + feature.properties.nombre);
+}
+
+var lineaLayer = L.geoJSON(linea, {
+    style: estiloLinea,
+    onEachFeature: popupLinea
+}).addTo(map);
+
+// ========================
+// Leyendas
+// ========================
+
+// Leyenda estaciones
+var legendEstaciones = L.control({position: 'bottomright'});
+legendEstaciones.onAdd = function (map) {
+    var div = L.DomUtil.create('div', 'info legend');
+    var grades = [0, 5000, 10000, 30000, 60000];
+    var categories = ['< 5000','5001-10000','10001-30000','30001-60000','>60000'];
+    var labels = ['<strong>Población cercana (habitantes)</strong>'];
+    for (var i=0; i<grades.length; i++){
+        var grade = grades[i];
+        labels.push(
+            '<i class="circlepadding" style="width: '+Math.max(8,(7-2.2*getRadius(grade)))+'px;"></i> ' +
+            '<i style="background: #8B0000; width: '+getRadius(grade)*2+'px; height:'+getRadius(grade)*2+'px; border-radius: 50%; display:inline-block;"></i> ' + categories[i]
+        );
+    }
+    div.innerHTML = labels.join('<br>');
+    return div;
+};
+
+// Leyenda líneas
+var legendLineas = L.control({position: 'bottomright'});
+legendLineas.onAdd = function(map){
+    var div = L.DomUtil.create('div', 'info legend');
+    var nombres = [
+        "F.C. Madrid-Córdoba",
+        "F.C. Sevilla-Cádiz",
+        "Sevilla Empalme Córdoba-Cádiz",
+        "F.C. Córdoba-Málaga",
+        "F.C. Bobadilla-Granada"
+    ];
+    var labels = ['<strong>Líneas de ferrocarril</strong>'];
+    nombres.forEach(function(nombre){
+        var color = colorLinea(nombre);
+        labels.push('<i style="background:' + color + '; width:18px; height:5px; display:inline-block; margin-right:5px;"></i> ' + nombre);
+    });
+    div.innerHTML = labels.join('<br>');
+    return div;
+};
+
+// Control de capas
+var baseLayers = {
+    "Maptile": maptile,
+    "OpenStreetMap": osm
+};
+
+var overlays = {
+    "Estaciones de tren": estacionesLayer,
+    "Línea de ferrocarril": lineaLayer
+};
+
+var control = L.control.layers(baseLayers, overlays, {collapsed:false}).addTo(map);
+
+// Mostrar leyendas según capa activa
+map.on('overlayadd', function(e){
+    if(e.name === 'Estaciones de tren') legendEstaciones.addTo(map);
+    if(e.name === 'Línea de ferrocarril') legendLineas.addTo(map);
+});
+map.on('overlayremove', function(e){
+    if(e.name === 'Estaciones de tren') map.removeControl(legendEstaciones);
+    if(e.name === 'Línea de ferrocarril') map.removeControl(legendLineas);
+});
+
+// ========================
+// Escala y buscador
+// ========================
+var escala = L.control.scale({position: 'bottomleft', imperial: false, maxWidth: 200});
+map.addControl(escala);
+
+var results = L.layerGroup().addTo(map);
+var searchControl = L.esri.Geocoding.geosearch({
+    position:'topright',
+    placeholder:'escribe la localización',
+    expanded:true
+}).addTo(map);
+
+searchControl.on('results', function(data){
+    results.clearLayers();
+    for (var i = data.results.length -1; i >= 0; i--) {
+        results.addLayer(L.marker(data.results[i].latlng));
+    }
+});
 	</script>
 	<div style=text-align:right>
 		<p style=color:black><strong>Autor: Joaquín Osorio Arjona (Doctor en Geografía, Profesor en la UNED). <a href=”url”>https://www.uned.es/universidad/docentes/geografia-historia/joaquin-osorio-arjona.html</a></strong></p>	
