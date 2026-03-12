@@ -247,11 +247,12 @@ var estacionesLayer = L.geoJSON(estaciones, {
 // ========================
 function colorLinea(nombre) {
     switch(nombre) {
-        case "F.C. Madrid-Córdoba": return "#8B0000"; // rojo oscuro
-        case "F.C. Sevilla-Cádiz": return "#B22222"; // rojo sangre
-        case "Sevilla Empalme Córdoba-Cádiz": return "#FF69B4"; // rosa
-        case "F.C. Córdoba-Málaga": return "#4B0082"; // morado oscuro
-        case "F.C. Bobadilla-Granada": return "#9370DB"; // morado claro-medio
+        case "F.C. Madrid-Córdoba": return "#8B0000"; 
+		case "F.C. Córdoba-Sevilla": return "#fe0000"; 
+        case "F.C. Sevilla-Cádiz": return "#B22222"; 
+        case "Sevilla Empalme Córdoba-Cádiz": return "#FF69B4";
+        case "F.C. Córdoba-Málaga": return "#4B0082"; 
+        case "F.C. Bobadilla-Granada": return "#9370DB"; 
         default: return "#000000";
     }
 }
@@ -300,8 +301,9 @@ legendLineas.onAdd = function(map){
     var div = L.DomUtil.create('div', 'info legend');
     var nombres = [
         "F.C. Madrid-Córdoba",
+		"F.C. Córdoba-Sevilla",
+		"Sevilla Empalme Córdoba-Cádiz",
         "F.C. Sevilla-Cádiz",
-        "Sevilla Empalme Córdoba-Cádiz",
         "F.C. Córdoba-Málaga",
         "F.C. Bobadilla-Granada"
     ];
