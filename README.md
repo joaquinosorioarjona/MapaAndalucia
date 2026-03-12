@@ -1,4 +1,4 @@
-# Mapa de la Línea General de Ferrocarril de Andalucía (Madrid-Córdoba-Sevilla-Cádiz y Madrid-Córdoba-Málaga/Antequera).
+# Mapa de la Línea General de Ferrocarril de Andalucía (Madrid-Córdoba-Sevilla-Cádiz y Madrid-Córdoba-Málaga/Granada).
 
 Este mapa web muestra la Línea General de Ferrocarril que se creó a mediados del siglo XIX para conectar Madrid con las grandes ciudades de Andalucía.
 
