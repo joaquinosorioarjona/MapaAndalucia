@@ -346,21 +346,14 @@ var escala = L.control.scale({position: 'bottomleft', imperial: false, maxWidth:
 map.addControl(escala);
 
 // ========================
-// Geocodificador (localizador) encima de control de capas
+// Geocodificador 
 // ========================
 var results = L.layerGroup().addTo(map);
 var searchControl = L.esri.Geocoding.geosearch({
-    position: 'topright',
+    position: 'topleft',
     placeholder: 'escribe la localización',
     expanded: true
 }).addTo(map);
-
-searchControl.on('results', function(data){
-    results.clearLayers();
-    for (var i = data.results.length - 1; i >= 0; i--) {
-        results.addLayer(L.marker(data.results[i].latlng));
-    }
-});
 
 // ========================
 // Leyenda combinada siempre visible
