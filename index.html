@@ -206,7 +206,7 @@
 		color: "#800080"
 	}).addTo(map);
 		
-	function getRadius(poblacion) {
+	function getRadius(habitantes) {
 			return habitantes >= 60000  ? 40 :
 				habitantes >= 30000  ? 20 :
 				habitantes >= 10000 ? 10: 
@@ -216,13 +216,13 @@
 		
 	function estilo(feature) {
 			return{
-				radius:getRadius(feature.properties.poblacion),
+				radius:getRadius(feature.properties.habitantes),
 			};
 		};
 	
 	function popup(feature, layer) {
 			layer.bindPopup("<ul><h4>" +feature.properties.nombre+" </h4><li>" 
-			+feature.properties.municipio+", "+feature.properties.provincia+"</li><li>Da servicio a aproximadamente "+feature.properties.poblacion+" habitantes.</li></ul>");
+			+feature.properties.municipio+", "+feature.properties.provincia+"</li><li>Da servicio a aproximadamente "+feature.properties.habitantes+" habitantes.</li></ul>");
 		};
 
 	var MarkerOptions = {
